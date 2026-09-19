@@ -13,3 +13,6 @@
 .idea/
 *.user
 *.suo
+
+# Personal scratchpads and interview study logs
+ignore.txt
