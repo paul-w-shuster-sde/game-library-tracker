@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EF Core Loading & Memory Optimization Study Guide</title>
+    <script src="https://tailwindcss.com"></script>
+</head>
+<body class="h-full text-slate-100 font-sans p-6 md:p-12">
+    <div class="mx-auto max-w-4xl space-y-8">
+        
+        <!-- Header -->
+        <div class="border-b border-slate-800 pb-6">
+            <span class="text-xs font-mono uppercase tracking-wider text-indigo-400">Paul W. Shuster — Technical Interview Assets</span>
+            <h1 class="text-3xl font-extrabold text-white mt-1">Entity Framework Core Architecture Guide</h1>
+            <p class="text-slate-400 mt-2 text-sm">Decoupling memory allocation, database round-trips, and mapping behaviors in .NET 8 pipelines.</p>
+        </div>
+
+        <!-- Section 1: Memory & Tracking -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-4">
+            <h2 class="text-lg font-bold text-indigo-300 flex items-center gap-2">🧠 1. Memory Allocation & Change Tracking</h2>
+            <p class="text-slate-300 text-sm leading-relaxed">
+                When you execute <code class="bg-slate-950 px-1.5 py-0.5 rounded font-mono text-xs text-rose-400">db.Games.ToList()</code>, EF Core instantiates objects for every row returned. On a realistic library dataset of 40,000 rows, this consumes minor memory. However, by default, EF Core puts these objects into the <strong>Change Tracker</strong>.
+            </p>
+            <div class="rounded-lg bg-slate-950 p-4 font-mono text-xs text-slate-400 border border-slate-800 space-y-2">
+                <div class="text-emerald-400">// Interviewer Trap: Heavy tracking overhead for read-only reports</div>
+                <div>var games = db.Games.ToList(); <span class="text-slate-600">// Allocates memory clones for tracking states</span></div>
+                <div class="pt-2 text-indigo-400">// Pro-Senior Optimization: Drop the tracking overhead completely</div>
+                <div>var games = db.Games.<span class="text-white font-bold">AsNoTracking()</span>.ToList();</div>
+            </div>
+            <p class="text-slate-400 text-xs">
+                <strong>Senior Takeaway:</strong> For read-only dashboards, always call <code class="font-mono text-xs text-indigo-300">AsNoTracking()</code>. This bypasses snapshot cloning in memory, dropping allocation footprint by up to 50%.
+            </p>
+        </div>
+
+        <!-- Section 2: Eager vs Lazy Loading -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900 p-6 space-y-6">
+            <h2 class="text-lg font-bold text-violet-300 flex items-center gap-2">🔄 2. Loading Subsystems in Many-to-Many Relationships</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Eager Loading -->
+                <div class="space-y-2">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono">⚡ Eager Loading (.Include)</h3>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        Forces the ORM to fetch the target records and all their associated child entities (Genres) at the exact same time using a single, structural SQL <code class="font-mono text-amber-400">LEFT JOIN</code> command block.
+                    </p>
+                    <ul class="text-slate-400 text-xs list-disc pl-4 space-y-1">
+                        <li><span class="text-emerald-400 font-bold">Pros:</span> Exactly <strong>1 database round-trip</strong>. Highly deterministic.</li>
+                        <li><span class="text-rose-400 font-bold">Cons:</span> Can lead to Cartesian product explosion if joining multiple child collections sequentially.</li>
+                    </ul>
+                </div>
+
+                <!-- Lazy Loading -->
+                <div class="space-y-2">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider font-mono">💤 Lazy Loading</h3>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        Child entities are left completely blank in initial memory. The database is only queried <em>on-demand</em> the exact moment code loops attempt to touch a navigation property.
+                    </p>
+                    <ul class="text-slate-400 text-xs list-disc pl-4 space-y-1">
+                        <li><span class="text-emerald-400 font-bold">Pros:</span> Lightweight initial payload if child details are rarely accessed.</li>
+                        <li><span class="text-rose-400 font-bold">Cons:</span> Triggers the dangerous <strong>N+1 Query Problem</strong>. If looping over 40,000 games, it will make 40,001 individual round-trips, crashing performance.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- The N+1 Visual Code Callout -->
+            <div class="rounded-lg bg-slate-950 p-4 font-mono text-xs text-slate-500 border border-slate-800">
+                <div class="text-rose-500">// The N+1 Disastrous Loop Mapped Out:</div>
+                <div class="text-slate-400">foreach(var g in db.Games.ToList()) {</div>
+                <div class="text-slate-400">    Console.WriteLine(g.Genres.First().Name); <span class="text-rose-400 font-bold">// <-- TRIGGERS A FRESH DATABASE CALL ON EVERY SINGLE ROW!</span></div>
+                <div class="text-slate-400">}</div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
