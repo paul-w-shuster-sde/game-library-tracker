@@ -32,6 +32,12 @@ namespace GameLibraryAnalytics
         [Column("completion_status")]
         public string? CompletionStatus { get; set; }
 
+
+        // FIX: Explicitly map your C# object properties to your new database column
+        [Column("metascore")]
+        public int? Metascore { get; set; }
+
+
         public List<Genre> Genres { get; set; } = new();
     }
 
