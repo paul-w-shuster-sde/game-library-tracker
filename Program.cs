@@ -146,13 +146,18 @@ namespace GameLibraryAnalytics
                         rank++;
                     }
 
+                                      // ==========================================================
                     // REPORT 3: Dynamic Backlog Randomizer
+                    // ==========================================================
                     Console.WriteLine("\n🎲 REPORT 3: Your Next Game to Try (Randomized Unplayed Backlog Selection)");
                     
                     var unplayedBacklog = db.Games
                                             .Include(g => g.Genres)
                                             .Where(g => g.HoursPlayed <= 2 && !g.Genres.Any(genre => genre.GenreName == "utilities" || genre.GenreName == "software"))
                                             .ToList();
+
+                    // FIX: Declare the variable out here so it survives the block scope boundary
+                    Game? recommendedGame = null;
 
                     if (!unplayedBacklog.Any())
                     {
@@ -162,7 +167,9 @@ namespace GameLibraryAnalytics
                     {
                         var rand = new Random();
                         int targetIndex = rand.Next(0, unplayedBacklog.Count);
-                        var recommendedGame = unplayedBacklog[targetIndex];
+                        
+                        // Assign the value inside the block
+                        recommendedGame = unplayedBacklog[targetIndex];
 
                         string recYear = !string.IsNullOrEmpty(recommendedGame.ReleaseDate) && recommendedGame.ReleaseDate.Length >= 4 
                             ? recommendedGame.ReleaseDate.Substring(0, 4) 
@@ -173,14 +180,59 @@ namespace GameLibraryAnalytics
                         Console.WriteLine("==========================================================");
                         Console.WriteLine("💡 Architecture Directive: Fire up your client station and log your first metrics!");
                     }
+
+                    // ==========================================================
+                    // 4. PRESENTATION LAYER DASHBOARD GEN
+                    // ==========================================================
+                    Console.WriteLine("\n🌐 GENERATING PRESENTATION LAYER: Compiling Static Tailwind Dashboard...");
+                    
+                    // Map Report 2 (True Entertainment Games)
+                    var leaderboardData = topTrueGames.Select(g => new GameMetricEntry
+                    {
+                        Title = g.Title,
+                        Platform = "Steam Station",
+                        HoursPlayed = Convert.ToDouble(g.HoursPlayed),
+                        Status = g.CompletionStatus ?? "Tracked"
+                    }).ToList();
+
+                    // Map Report 3 (Low-Usage Inventory Slices)
+                    var backlogQueueData = unplayedBacklog.Take(10).Select(g => new GameMetricEntry
+                    {
+                        Title = g.Title,
+                        Platform = "Backlog Queue",
+                        HoursPlayed = Convert.ToDouble(g.HoursPlayed),
+                        Status = "Unplayed"
+                    }).ToList();
+
+                    // Safely isolate the single chosen random recommended game if it exists
+                    GameMetricEntry? randomShowcase = null;
+                    if (recommendedGame != null)
+                    {
+                        randomShowcase = new GameMetricEntry
+                        {
+                            Title = recommendedGame.Title,
+                            Platform = "System Backlog",
+                            HoursPlayed = Convert.ToDouble(recommendedGame.HoursPlayed),
+                            Status = "Recommended"
+                        };
+                    }
+
+                    // Compile out to disk incorporating the random backlog entry spotlight card
+                    AnalyticsReportGenerator.GenerateStaticDashboard(leaderboardData, backlogQueueData, randomShowcase, "index.html");
+
+
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"❌ Runtime Connection Exception: {ex.Message}");
                 }
             }
+
+ 
             Console.WriteLine("\n🏁 Analysis segments complete. Systems resting.");
             Console.ReadLine();
+
+
         }
 
        /* private static void ExecuteTelemetryPipeline(string batchPayload)
@@ -277,6 +329,7 @@ namespace GameLibraryAnalytics
                         command.ExecuteNonQuery();
 
                         Console.WriteLine($"   ✔️ Parsed & Synced: {title} | Hours: {hoursPlayed} | Status: {completionStatus}");
+
                     }
                 }
             }
