@@ -1,0 +1,44 @@
+<section>
+    <h2>Data Entity Schemas: Game Class (POCO Model)</h2>
+    <p>This class acts as a Plain Old CLR Object (POCO) that maps directly to the underlying physical PostgreSQL database schema using Entity Framework Core attributes.</p>
+
+    <h3>Class-Level Attributes</h3>
+    <ul>
+        <li>
+            <strong><code>[Table("games")]</code></strong>
+            <br><em>What it does:</em> Explicitly maps the <code>Game</code> C# class to a physical database table named <code>games</code>. Without this, EF Core would default to naming the table after the property name (usually <code>Games</code>).
+        </li>
+    </ul>
+
+    <h3>Properties & Property-Level Attributes</h3>
+    <ul>
+        <li>
+            <strong><code>[Key]</code> & <code>[Column("game_id")] public int GameId { get; set; }</code></strong>
+            <br><em>What it does:</em> <code>[Key]</code> marks this property as the Primary Key for the table. <code>[Column("game_id")]</code> ensures the field maps to the exact column name in PostgreSQL. The <code>int</code> type ensures automated incremental sequencing.
+        </li>
+        <li>
+            <strong><code>[Column("title")] public string Title { get; set; } = null!;</code></strong>
+            <br><em>What it does:</em> Maps the property to the <code>title</code> column. The <code>= null!;</code> syntax uses the null-forgiving operator to satisfy C# nullable reference types, indicating this field must contain valid string data upon initialization.
+        </li>
+        <li>
+            <strong><code>[Column("hours_played")] public decimal HoursPlayed { get; set; }</code></strong>
+            <br><em>What it does:</em> Maps to the <code>hours_played</code> column. Using <code>decimal</code> is standard practice for numeric data fields requiring exact fractional precision (like gameplay trackers) rather than floating-point approximations.
+        </li>
+        <li>
+            <strong><code>[Column("release_date")] public string? ReleaseDate { get; set; }</code></strong>
+            <br><em>What it does:</em> Maps to the <code>release_date</code> column. The <code>?</code> suffix marks this property as nullable, meaning the database can store an empty or missing value for this field.
+        </li>
+        <li>
+            <strong><code>[Column("completion_status")] public string? CompletionStatus { get; set; }</code></strong>
+            <br><em>What it does:</em> Maps to the <code>completion_status</code> column. It is safely marked as a nullable string reference type to gracefully handle incomplete backlogs.
+        </li>
+        <li>
+            <strong><code>[Column("metascore")] public int? Metascore { get; set; }</code></strong>
+            <br><em>What it does:</em> Maps the C# property to the newly added database column <code>metascore</code>. By defining it as <code>int?</code> (nullable integer), it accommodates games that lack an official review rating.
+        </li>
+        <li>
+            <strong><code>public List&lt;Genre&gt; Genres { get; set; } = new();</code></strong>
+            <br><em>What it does:</em> Establishes a navigation property defining a relationship with the <code>Genre</code> entity. EF Core interprets this list to configure relational mappings (such as a Many-to-Many join table configuration) behind the scenes.
+        </li>
+    </ul>
+</section>
