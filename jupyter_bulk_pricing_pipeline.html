@@ -1,0 +1,28 @@
+<section>
+    <h2>Optimized Python Data Pipeline: Bulk Pricing Backfill</h2>
+    <p>This script extracts records with uninitialized pricing from the PostgreSQL instance, processes fallback logic entirely in-memory, and writes all updates back to the cluster in a single transactional batch to maximize efficiency.</p>
+
+    <h3>Pipeline Execution Strategy</h3>
+    <ul>
+        <li>
+            <strong><code>In-Memory Payload Accumulation</code></strong>
+            <br><em>What it does:</em> Initializes <code>bulk_update_payloads</code> as an empty Python list. Instead of opening a new transaction channel inside the loop, the pipeline processes each game record locally and appends a structured key-value payload containing the <code>price</code> and <code>game_id</code>.
+        </li>
+        <li>
+            <strong><code>Heuristic & Tiered Calculations</code></strong>
+            <br><em>What it does:</em> Normalizes game titles for exact matching against a hardcoded lookup dictionary (Tier A), evaluates gameplay depth patterns using explicit playtime criteria (Tier B), and dynamically distributes realistic retail pricing for unplayed backlogs using <code>random.choice()</code> (Tier C).
+        </li>
+        <li>
+            <strong><code>High-Performance Batch Execution</code></strong>
+            <br><em>What it does:</em> Evaluates if any rows require modifications using <code>if bulk_update_payloads:</code>. If data exists, it prepares a parameterized query with named placeholders (<code>:price</code> and <code>:game_id</code>).
+        </li>
+        <li>
+            <strong><code>Unified Transaction Lifecycle</code></strong>
+            <br><em>What it does:</em> Opens a single connection block via SQLAlchemy. By passing the entire list of dictionaries directly into <code>conn.execute()</code>, the engine scales up the task using a high-performance <code>executemany</code> batch driver rather than compiling isolated updates sequentially.
+        </li>
+        <li>
+            <strong><code>Atomic Storage Commit</code></strong>
+            <br><em>What it does:</em> Invokes a single <code>conn.commit()</code> invocation to flush the entire operational block down to the physical PostgreSQL Write-Ahead Log (WAL) on your Linux host. This cuts down database network trip complexity from <strong>N roundtrips to exactly 1</strong>.
+        </li>
+    </ul>
+</section>
