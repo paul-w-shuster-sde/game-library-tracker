@@ -1,0 +1,42 @@
+<section>
+    <h2>Project Dependencies & Namespaces</h2>
+    <p>This project utilizes standard .NET libraries alongside Entity Framework Core and PostgreSQL drivers to manage data persistence.</p>
+
+    <ul>
+        <li>
+            <strong><code>using System;</code></strong>
+            <br><em>Purpose:</em> Contains fundamental and base classes in .NET.
+            <br><em>What it does:</em> Provides core data types (like <code>String</code>, <code>DateTime</code>, <code>Int32</code>), console capabilities, and essential system utilities like exception handling.
+        </li>
+        <li>
+            <strong><code>using System.Collections.Generic;</code></strong>
+            <br><em>Purpose:</em> Contains interfaces and classes that define generic collections.
+            <br><em>What it does:</em> Allows you to create strongly-typed collections, such as <code>List&lt;T&gt;</code>, <code>Dictionary&lt;TKey, TValue&gt;</code>, and <code>IEnumerable&lt;T&gt;</code>, which are essential for managing groups of data without type-casting overhead.
+        </li>
+        <li>
+            <strong><code>using System.ComponentModel.DataAnnotations;</code></strong>
+            <br><em>Purpose:</em> Provides attribute classes used to define metadata for your data models.
+            <br><em>What it does:</em> Enables data validation and formatting directly on your properties. Common attributes include <code>[Key]</code> (to mark a primary key), <code>[Required]</code>, and <code>[StringLength]</code>.
+        </li>
+        <li>
+            <strong><code>using System.ComponentModel.DataAnnotations.Schema;</code></strong>
+            <br><em>Purpose:</em> Provides attributes that denote database schema-specific configurations.
+            <br><em>What it does:</em> Helps map your C# classes and properties to specific physical structures in the database. Common attributes include <code>[Table("table_name")]</code> and <code>[Column("column_name")]</code>.
+        </li>
+        <li>
+            <strong><code>using System.Linq;</code></strong>
+            <br><em>Purpose:</em> Contains classes and interfaces that support Language-Integrated Query (LINQ).
+            <br><em>What it does:</em> Allows you to write declarative, readable queries directly in C# to filter, sort, and transform data from your database or memory collections.
+        </li>
+        <li>
+            <strong><code>using Microsoft.EntityFrameworkCore;</code></strong>
+            <br><em>Purpose:</em> The primary namespace for Entity Framework Core (EF Core).
+            <br><em>What it does:</em> Gives you access to the foundational ORM (Object-Relational Mapper) features, such as the <code>DbContext</code> class, tracking changes, managing migrations, and querying databases using LINQ.
+        </li>
+        <li>
+            <strong><code>using Npgsql;</code></strong>
+            <br><em>Purpose:</em> The open-source .NET data provider for PostgreSQL.
+            <br><em>What it does:</em> Acts as the bridge connecting your C# application to a PostgreSQL database instance, allowing EF Core to translate its commands into a language PostgreSQL understands.
+        </li>
+    </ul>
+</section>
